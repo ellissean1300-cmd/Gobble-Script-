@@ -1,0 +1,5 @@
+# hello_world.gob
+# A fully deterministic GobbleScript program -- no ~, ?, $, or @ used,
+# so it behaves exactly like a classic Brainfuck "Hello World!" and proves
+# the base tape/loop/IO mechanics work before we introduce any chaos.
+++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
