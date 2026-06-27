@@ -1,14 +1,3 @@
-# Gobble-Script-
-A BrainFuck spin-off.
-
-<img src="logo.svg" width="640" alt="GobbleScript logo">
-
-[![License: MIT](https://img.shields.io/badge/license-MIT-C8F25D)](LICENSE)
-[![Python 3](https://img.shields.io/badge/python-3-blue)](gobblescript.py)
-[![type](https://img.shields.io/badge/type-esolang-FF6B5B)](#)
-
-
-
 # GobbleScript
 
 GobbleScript is Brainfuck's unstable cousin: an esoteric, tape-based
@@ -118,6 +107,39 @@ Exit codes: `0` finished normally, `1` malformed source (unmatched bracket),
   the loop body eats its own closing bracket on the second pass. This one
   *is* fully deterministic — `@` is the one operator with no randomness in
   it, it's just very good at permanently breaking things.
+
+## GUI mode: GobbleScript Canvas
+
+GobbleScript has no GUI commands — like Brainfuck, its only output is "write
+one character." `gobblescript_canvas.py` is a separate, self-contained
+companion script that gives `.` a different *meaning* instead of adding new
+syntax: the tape becomes a grid of pixels.
+
+- The Maw's position (wrapped to fit the grid) picks which pixel is "current."
+- `.` paints that pixel using the current cell's value (0–255) as grayscale
+  brightness, instead of printing a character.
+- `,` reads the most recently pressed key in the window (or `0` if none yet),
+  instead of reading stdin.
+- Everything else — Hunger, `@` permanently deleting instructions, `~` `?`
+  `$` `%` — works exactly as documented above.
+
+```
+python3 gobblescript_canvas.py examples/ring.gob
+
+  --width N / --height N   grid size in pixels (default 32x32)
+  --scale N                screen pixels per grid cell (default 14)
+  --hunger N, --seed N, --max-steps N   same meaning as the text interpreter
+  --speed N                instructions executed per animation frame (default 200)
+  --delay N                milliseconds between frames (default 1)
+```
+
+It opens a window and draws progressively, frame by frame, rather than
+computing the whole image and showing it only at the end — so you can watch
+a GobbleScript program "think." `examples/ring.gob` draws a simple glowing
+ring as a sanity check that your setup works.
+
+Requires Python's built-in `tkinter` (bundled with the standard Windows/Mac
+installers; on Linux, `sudo apt install python3-tk` if it's missing).
 
 ## A starter exercise
 
