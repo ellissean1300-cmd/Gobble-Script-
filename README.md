@@ -1,151 +1,309 @@
+<p align="center">
+  <img src="logo.svg" alt="GobbleScript logo" width="440">
+</p>
+
+<p align="center">
+  <strong>GobbleScript</strong><br>
+  <em>Brainfuck's unstable, self-eating cousin.</em>
+</p>
+
+---
+
 # GobbleScript
 
-GobbleScript is Brainfuck's unstable cousin: an esoteric, tape-based
-language where the *program itself* gets hungry, hiccups, burps, and can
-permanently eat its own instructions while it runs. Two runs of the same
-source file are not guaranteed to do the same thing — and that's the point.
-It's an irrational language on purpose.
+GobbleScript is Brainfuck's unstable cousin: an esoteric, tape-based language where the **program itself** gets hungry, hiccups, burps, and can permanently eat its own instructions while it runs.
 
-```
+Two runs of the same source file are **not guaranteed to do the same thing**—and that's the point.
+
+```bash
 $ python3 gobblescript.py examples/hello_world.gob
 Hello World!
 ```
 
-```
+```bash
 $ python3 gobblescript.py examples/chaos.gob
 Hello, Gobblek
 N
+
 $ python3 gobblescript.py examples/chaos.gob
 Hello, Gobbles
 N
 ```
 
-## The model
+---
 
-- **The Tape** — an infinite line of byte cells (0–255, wrapping), just
-  like Brainfuck.
-- **The Maw** — the data pointer. Starts at cell 0.
-- **Hunger** — a meter that starts at some number (default `20000`) and
-  drops by 1 every single instruction executed. If Hunger reaches 0, the
-  program **starves** and halts immediately, mid-execution, regardless of
-  what it was doing. `+` feeds Hunger back up; `-` drains it faster. Tight
-  `-`-heavy programs can genuinely starve to death before finishing — this
-  is a real resource you have to manage, not just flavor text.
-- **The Source** — unlike Brainfuck, the instruction stream is *mutable*.
-  One instruction (`@`) can permanently delete another instruction from it,
-  forever, including from inside a loop's body. A loop is not guaranteed to
-  look the same on lap 2 as it did on lap 1.
+# The Model
 
-## Commands
+GobbleScript is built around four ideas.
 
-| Symbol | Name | Effect |
-|---|---|---|
-| `>` | Lurch Right | Move the Maw one cell in the current direction |
-| `<` | Lurch Left | Move the Maw one cell against the current direction |
-| `+` | Feed | Cell +1; Hunger +3 (net Hunger gain after the per-instruction cost) |
-| `-` | Starve | Cell −1; Hunger −1 extra (net Hunger loss) |
-| `.` | Burp | Output the current cell as a character |
-| `,` | Swallow | Read one character of input into the current cell |
-| `[` | Open Maw | Enter the loop while the current cell ≠ 0 (else jump past matching `]`) |
-| `]` | Close Maw | Jump back to the matching `[` if the current cell ≠ 0 |
-| `~` | Indigestion | Add random noise (−5..+5) to the current cell |
-| `?` | Hiccup | 50% chance to skip the very next instruction entirely |
-| `$` | Belch | Teleport the Maw by a random offset (±12 cells) |
-| `%` | Reflux | Flip the meaning of `<` and `>` for the rest of the program |
-| `@` | Gobble | **Permanently delete** the next instruction from the source — it can never run again, even on a future pass through a loop |
-| `#` | — | Comment: everything to end of line is ignored |
+### The Tape
 
-Every character that isn't one of the above is ignored, so you can write
-prose freely around your code (or just use `#` comments).
+An infinite line of byte cells (0–255, wrapping), just like Brainfuck.
 
-## Why "irrational"
+### The Maw
 
-A handful of design choices make GobbleScript intentionally non-deterministic
-and occasionally self-destructive, instead of merely minimal like Brainfuck:
+The data pointer.
 
-1. **Genuine randomness in control flow and data** (`~`, `?`, `$`) means the
-   same source can legitimately produce different output, or even take a
-   different control path, from one run to the next.
-2. **Self-modification that survives loops** (`@`) means static analysis of
-   the source doesn't tell you what will actually run — a loop's body is
-   re-read fresh from a list that the loop itself might be shrinking.
-3. **A finite resource that's tied to control flow** (Hunger) means a
-   logically correct program can still fail for an unrelated reason: it
-   simply ran out of steam.
+It begins at cell `0`.
 
-None of this is hidden state — it's all visible on the tape, in the Hunger
-counter, and in the shrinking source — but it does mean you should treat a
-GobbleScript program as a living thing with moods, not a fixed recipe.
+### Hunger
 
-## Running it
+A resource meter that begins at a configurable value (default `20000`).
 
-```
+Every instruction executed costs **1 Hunger**.
+
+When Hunger reaches **0**, the program immediately starves and halts, even if it is halfway through a loop or printing output.
+
+Some instructions affect Hunger further:
+
+* `+` feeds the program (+3 Hunger after the instruction cost)
+* `-` drains it even faster
+* Long-running programs must manage Hunger carefully
+
+Unlike Brainfuck, computation is limited by a real resource.
+
+### The Source
+
+The source code is mutable.
+
+The `@` instruction permanently removes instructions from the running program itself.
+
+A loop can literally shrink while it is executing.
+
+---
+
+# Commands
+
+| Symbol | Name        | Effect                                                            |
+| :----: | ----------- | ----------------------------------------------------------------- |
+|   `>`  | Lurch Right | Move the Maw one cell in the current direction                    |
+|   `<`  | Lurch Left  | Move the Maw one cell against the current direction               |
+|   `+`  | Feed        | Current cell +1; Hunger +3 (net gain after execution cost)        |
+|   `-`  | Starve      | Current cell −1; Hunger −1 extra                                  |
+|   `.`  | Burp        | Output current cell as a character                                |
+|   `,`  | Swallow     | Read one byte of input into the current cell                      |
+|   `[`  | Open Maw    | Begin loop while current cell ≠ 0                                 |
+|   `]`  | Close Maw   | Jump back if current cell ≠ 0                                     |
+|   `~`  | Indigestion | Add random noise (−5…+5) to the current cell                      |
+|   `?`  | Hiccup      | 50% chance to skip the next instruction                           |
+|   `$`  | Belch       | Teleport the Maw by a random offset (±12 cells)                   |
+|   `%`  | Reflux      | Reverse the meaning of `<` and `>` for the remainder of execution |
+|   `@`  | Gobble      | Permanently delete the next instruction from the source           |
+|   `#`  | Comment     | Ignore everything until the end of the line                       |
+
+Any character not listed above is ignored, making it easy to write comments or prose directly inside programs.
+
+---
+
+# Why "Irrational"?
+
+GobbleScript intentionally refuses to be a perfectly logical language.
+
+## Randomness
+
+Instructions like `~`, `?`, and `$` introduce genuine randomness.
+
+The exact same program may:
+
+* print different output
+* follow different execution paths
+* terminate differently
+
+without any bugs in the interpreter.
+
+---
+
+## Self-modifying code
+
+`@` permanently deletes instructions from the source.
+
+Unlike temporary jumps or runtime patches, these changes persist for the remainder of execution.
+
+Even loop bodies are reread from the modified source each iteration.
+
+Static analysis quickly becomes unreliable.
+
+---
+
+## Hunger
+
+Programs don't simply need to be correct.
+
+They need enough energy to survive.
+
+A perfectly valid algorithm can fail because it literally starves before reaching the end.
+
+Managing Hunger becomes another part of programming.
+
+---
+
+# Running
+
+```text
 python3 gobblescript.py program.gob [options]
 
-  --hunger N       starting Hunger (default 20000)
-  --seed N         random seed, for reproducible chaos
-  --input "text"   fixed input string fed to ',' instructions
-                    (omit to read live from stdin instead)
-  --max-steps N    safety cap on executed instructions (default 5,000,000)
-  -v, --verbose    print a step-by-step trace to stderr
+  --hunger N
+      Starting Hunger (default 20000)
+
+  --seed N
+      Random seed for reproducible chaos
+
+  --input "text"
+      Feed fixed input to ',' instructions
+
+  --max-steps N
+      Maximum executed instructions
+      (default 5,000,000)
+
+  -v, --verbose
+      Print a complete execution trace
 ```
 
-Exit codes: `0` finished normally, `1` malformed source (unmatched bracket),
-`2` starved to death, `3` hit the step safety cap (probably an infinite loop).
+Exit codes:
 
-## Examples
+| Code | Meaning                               |
+| ---: | ------------------------------------- |
+|    0 | Finished normally                     |
+|    1 | Malformed source (unmatched brackets) |
+|    2 | Starved to death                      |
+|    3 | Maximum instruction limit reached     |
 
-- `examples/hello_world.gob` — plain deterministic Brainfuck-style code (no
-  `~ ? $ % @`), proving the base tape/loop/IO mechanics behave normally
-  before any chaos is introduced.
-- `examples/chaos.gob` — the same idea, but the last couple of characters
-  are jittered by `~`, possibly skipped by `?`, and one is deliberately
-  protected from chaos by `@` eating the troublemaker before it can fire.
-  Run it a few times in a row and watch the output change.
-- `examples/self_eating_loop.gob` — a cautionary tale: a loop that looks
-  like it should print 5 digits but only ever prints 2, because `@` inside
-  the loop body eats its own closing bracket on the second pass. This one
-  *is* fully deterministic — `@` is the one operator with no randomness in
-  it, it's just very good at permanently breaking things.
+---
 
-## GUI mode: GobbleScript Canvas
+# Example Programs
 
-GobbleScript has no GUI commands — like Brainfuck, its only output is "write
-one character." `gobblescript_canvas.py` is a separate, self-contained
-companion script that gives `.` a different *meaning* instead of adding new
-syntax: the tape becomes a grid of pixels.
+### hello_world.gob
 
-- The Maw's position (wrapped to fit the grid) picks which pixel is "current."
-- `.` paints that pixel using the current cell's value (0–255) as grayscale
-  brightness, instead of printing a character.
-- `,` reads the most recently pressed key in the window (or `0` if none yet),
-  instead of reading stdin.
-- Everything else — Hunger, `@` permanently deleting instructions, `~` `?`
-  `$` `%` — works exactly as documented above.
+A completely deterministic Brainfuck-style program.
 
-```
+No chaos operators are used.
+
+Useful for confirming the interpreter behaves correctly.
+
+---
+
+### chaos.gob
+
+A demonstration of GobbleScript's random instructions.
+
+The final characters are influenced by:
+
+* `~`
+* `?`
+
+while another dangerous instruction is safely removed by `@` before it can execute.
+
+Run it multiple times to see different results.
+
+---
+
+### self_eating_loop.gob
+
+A deterministic example of self-modifying code.
+
+The loop appears as though it should execute five times.
+
+Instead, `@` eventually consumes part of the loop itself, permanently changing the program.
+
+The result is only two outputs before execution changes forever.
+
+---
+
+# GobbleScript Canvas
+
+GobbleScript also includes a graphical interpreter.
+
+Instead of printing characters, the `.` instruction paints pixels.
+
+Everything else remains identical.
+
+* Hunger still matters.
+* Randomness still happens.
+* Instructions can still delete themselves.
+
+The tape is interpreted as a pixel grid.
+
+* Maw position selects a pixel.
+* Cell value becomes grayscale brightness.
+* `.` paints.
+* `,` reads the most recent keyboard input instead of stdin.
+
+Run it with:
+
+```bash
 python3 gobblescript_canvas.py examples/ring.gob
-
-  --width N / --height N   grid size in pixels (default 32x32)
-  --scale N                screen pixels per grid cell (default 14)
-  --hunger N, --seed N, --max-steps N   same meaning as the text interpreter
-  --speed N                instructions executed per animation frame (default 200)
-  --delay N                milliseconds between frames (default 1)
 ```
 
-It opens a window and draws progressively, frame by frame, rather than
-computing the whole image and showing it only at the end — so you can watch
-a GobbleScript program "think." `examples/ring.gob` draws a simple glowing
-ring as a sanity check that your setup works.
+Options:
 
-Requires Python's built-in `tkinter` (bundled with the standard Windows/Mac
-installers; on Linux, `sudo apt install python3-tk` if it's missing).
+```text
+--width N
+--height N
+    Canvas dimensions (default 32×32)
 
-## A starter exercise
+--scale N
+    Window scaling (default 14)
 
-Try writing a GobbleScript program that prints your name reliably even
-under random Hunger budgets — you'll need to balance `+` (which feeds
-Hunger) against how much `-`, `[`, and `]` work the loop body does. Then
-try a second version that's *deliberately* fragile: one bad `@` placement
-inside a loop, and watch it die a different way every time you tweak the
-seed.
+--speed N
+    Instructions per animation frame
+    (default 200)
+
+--delay N
+    Milliseconds between frames
+    (default 1)
+
+--hunger N
+--seed N
+--max-steps N
+    Same meaning as the text interpreter
+```
+
+The interpreter renders progressively so you can watch GobbleScript "think" as it executes.
+
+Requires Python's built-in `tkinter`.
+
+Linux users may need:
+
+```bash
+sudo apt install python3-tk
+```
+
+---
+
+# Starter Challenge
+
+Try writing a GobbleScript program that prints your name reliably under varying Hunger budgets.
+
+You'll need to balance:
+
+* feeding with `+`
+* work performed inside loops
+* total instruction count
+
+Once you've succeeded, try writing a second version that's intentionally fragile.
+
+Place a single `@` inside a loop and watch how tiny changes in execution produce wildly different behavior.
+
+---
+
+# Philosophy
+
+GobbleScript isn't designed to be practical.
+
+It's designed to feel alive.
+
+Programs become exhausted.
+
+They stumble.
+
+They forget parts of themselves.
+
+Sometimes they succeed.
+
+Sometimes they starve.
+
+Sometimes they eat the very instruction that would have saved them.
+
+Programming GobbleScript is less like writing a recipe and more like raising a particularly chaotic pet.
+
+Happy gobbling.
