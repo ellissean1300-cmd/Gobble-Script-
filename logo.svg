@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" width="640" height="160" role="img" aria-label="GobbleScript logo">
+  <rect x="0" y="0" width="640" height="160" rx="14" fill="#1C1B22"/>
+
+  <!-- glyphs being swallowed, fading out as they approach the mouth -->
+  <text x="186" y="86" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" fill="#C8F25D" opacity="0.18">[</text>
+  <text x="206" y="86" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" fill="#C8F25D" opacity="0.45">0</text>
+  <text x="228" y="86" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" fill="#C8F25D" opacity="0.75">1</text>
+  <text x="250" y="86" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" fill="#C8F25D" opacity="1">@</text>
+
+  <!-- the mouth -->
+  <ellipse cx="105" cy="80" rx="72" ry="46" fill="#2A1418" stroke="#FF6B5B" stroke-width="6"/>
+  <polyline points="42,80 58,62 74,96 90,58 106,98 122,60 138,94 154,64 168,80"
+            fill="none" stroke="#F4F1EA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- wordmark -->
+  <text x="300" y="78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="40" font-weight="700" fill="#F4F1EA">Gobble<tspan fill="#C8F25D">Script</tspan></text>
+  <text x="301" y="106" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" fill="#A79FB0">an irrational, self-devouring esolang</text>
+</svg>
