@@ -1,6 +1,14 @@
 # Gobble-Script-
 A BrainFuck spin-off.
 
+<img src="logo.svg" width="640" alt="GobbleScript logo">
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-C8F25D)](LICENSE)
+[![Python 3](https://img.shields.io/badge/python-3-blue)](gobblescript.py)
+[![type](https://img.shields.io/badge/type-esolang-FF6B5B)](#)
+
+
+
 # GobbleScript
 
 GobbleScript is Brainfuck's unstable cousin: an esoteric, tape-based
